@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>转账</title>
+</head>
+<body>
+    <label>私钥</label><br>
+    <textarea rows="5" cols="60" id="pri" placeholder="私钥"></textarea><br>
+
+    <label>公钥</label><br>
+    <textarea rows="5" cols="60" id="pub" placeholder="公钥"></textarea><br>
+
+    <label>转账给</label><br>
+    <textarea rows="5" cols="60" id="to" placeholder="转账账户"></textarea><br>
+
+    <label>转账信息</label><br>
+    <textarea rows="5" cols="60" id="msg" placeholder="转账信息">张三给王五转账5毛钱</textarea><br>
+    <input type="button" value="提交转账" onclick="transaction()"><br>
+
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/jsrsasign-all-min.js"></script>
+    <script type="text/javascript">
+        var priStr = "-----BEGIN PRIVATE KEY-----\n" +
+            "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKJxDnY//MKMRONx0ph7uqantvpS\n" +
+            "MdalQ5wPAIeisH9OozFkMeb1Ftycs9wKKMMyoYMvXjU9jI2AcihCbpSqbGUDN/wHi2/uq8iutaGL\n" +
+            "jUljNgIaiqkDnpt9pOpp0Ff7a3roo6nSmPUEICbtewPQpKe/AJDUne+s067bUSXwXOVPAgMBAAEC\n" +
+            "gYAQZ05Ijqmdk8CZHzNfBo+QqLsHiClUPZgYOEObbshX8r70C+QmKHXIjWJ0Q+pd280HjE79HVwG\n" +
+            "JgRhIGQ+Sv9rAhP/Q3G20dvD5AbJpALJMYSEXyk98S/y0VFDQ306ddxW8q9h3ryecFjggJlcRRnf\n" +
+            "sO6KSds3tHAfU08H7ImfkQJBAPONZSKNeaUPNIT8qG6pVLNfWX0c3iL9d0RRGspkL8CZGcQ+lnN4\n" +
+            "n4qRedOkduPMVyUzQ1SDN08lJhNJpqHh+lUCQQCqvmuXgxi7PONkflfuYLLWdGjg+7bSyQ/AK8p8\n" +
+            "0kfUb/CxB/wAuO3YlnUIIHpDLbHk/dcxwMMOPB735396XQ0TAkAe2E1yrtA1I1PXc9gxC6j6fpzq\n" +
+            "x3kqnUc5k7v83eteTQWCYRrUzPYHqpzvPOkBuKNgxrlEPsoGcAH+d1lvLxtxAkAtixdV1bEeGHKr\n" +
+            "FoxL2F07mNd004+Dj//0iXm8a7afMrCn9/I/GxTOReu3nDogeyrNYuwoqDsfK+gyxfwZ3oIjAkEA\n" +
+            "4sJNk+44tDgvzI7QNGXDR5te85Fm154b7f65a7b6AvbswN3P6sEWktkEkfxRdgRPuREJl+Q3VZZW\n" +
+            "slrJa4RjVA==\n" +
+            "-----END PRIVATE KEY-----"
+
+        var publicStr = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCicQ52P/zCjETjcdKYe7qmp7b6UjHWpUOcDwCH\n" +
+            "orB/TqMxZDHm9RbcnLPcCijDMqGDL141PYyNgHIoQm6UqmxlAzf8B4tv7qvIrrWhi41JYzYCGoqp\n" +
+            "A56bfaTqadBX+2t66KOp0pj1BCAm7XsD0KSnvwCQ1J3vrNOu21El8FzlTwIDAQAB"
+
+        var toStr = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAjaZ6aSYRCP/1kDu71U/NkCW21B1abqiX\n" +
+            "3DXQK/ZhM/VPQKdIDiOru2nMM6UVtjBGYTZrQWEAjul0UAuf3ZK3iPCwh7iWKZPfcB/z6EOZiu0V\n" +
+            "qbMwA3gN9RFUG+n9M9ryr3nyIY+lOrSX+sicCaZChLeoe8zNTx2fEY9S9XeymhwjwT0eC7IbEObd\n" +
+            "3UpR0I7jz8QGdvIp7OVJBatdbYaLlmb+7/pMhUEIP+yKE/ALv0YAb+Hc7U9WEFulTZ79dmUeZrmX\n" +
+            "rNxpjookvHQqnWL8R4uox8YaJ7UdCWNnMMHy+h2fIsIBh7fEZLJr9/gfw0avYhiTRAgO0awB/hD9\n" +
+            "+Y1KAQIDAQAB"
+
+        /*修改私钥和公钥转账地址*/
+        $("#pri").val(priStr)
+        $("#pub").val(publicStr)
+        $("#to").val(toStr)
+
+        function transaction() {
+            //1.获取输入的信息:私钥  公钥  信息  转账地址
+            var priS =  $("#pri").val()
+            var pubS =  $("#pub").val()
+            var contentS =  $("#msg").val()
+            var toS =  $("#to").val()
+
+            //2.对content进行签名(通过私钥进行签名)
+            //获取私钥
+            var priKey = KEYUTIL.getKey(priS)
+            //签名实现
+            var sig = new KJUR.crypto.Signature({"alg": "SHA256withRSA"});
+            sig.init(priKey);
+            sig.updateString(contentS);
+            var signed = sig.sign();
+
+            //发送的数据包括:签名之后的密文  明文  公钥  转账地址
+            //通过什么数据格式?json字符串
+            //3.将传递的数据转换为json字符串
+            var transaction = {"signed":signed,"content":contentS,"publicKey":pubS,"toPublicKey":toS};
+            //将transaction转换为json字符串
+            var transactionStr = JSON.stringify(transaction)
+            //4.发送请求  把数据发送给节点服务器
+            $.ajax({
+                type: "POST",
+                url: "http://localhost:81/transaction",
+                data: transactionStr,
+                success: function(msg){
+                    console.log("请求成功")
+                },
+                error:function (XMLHttpRequest, textStatus, errorThrown) {
+                    console.log("请求失败")
+                }
+            });
+        }
+
+
+    </script>
+
+</body>
+</html>

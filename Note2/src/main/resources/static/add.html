@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>添加界面</title>
+</head>
+<body>
+<label>添加首页</label><br>
+<form method="post" action="/addGenesis"><br>
+    <textarea rows="5" cols="60" name="genesis" placeholder="首页数据"></textarea><br>
+    <input type="submit" value="提交"><br>
+</form>
+
+<label>添加内容</label><br>
+<form method="post" action="/addNote"><br>
+    <textarea rows="5" cols="60" name="content" placeholder="内容数据"></textarea><br>
+    <input type="submit" value="提交"><br>
+</form>
+
+
+<label>篡改数据</label><br>
+<form method="post" action="/modify"><br>
+    <input type="number" placeholder="0" name="index"><br>
+    <textarea rows="5" cols="60" name="content" placeholder="篡改的内容"></textarea><br>
+    <input type="submit" value="提交"><br>
+</form>
+</body>
+</html>
